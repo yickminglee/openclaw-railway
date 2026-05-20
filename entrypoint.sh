@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-chown -R openclaw:openclaw /data
+chown -R 1001:1001 /data
 chmod 700 /data
 
 if [ ! -d /data/.linuxbrew ]; then
@@ -11,4 +11,4 @@ fi
 rm -rf /home/linuxbrew/.linuxbrew
 ln -sfn /data/.linuxbrew /home/linuxbrew/.linuxbrew
 
-exec tini -- gosu openclaw node src/server.js
+exec tini -- gosu 1001:1001 node src/server.js

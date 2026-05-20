@@ -15,7 +15,6 @@ RUN apt-get update \
 
 RUN npm install -g openclaw@latest clawhub@latest
 
-# Backward-compatibility shim for older OPENCLAW_ENTRY values.
 RUN mkdir -p /openclaw \
   && ln -sfn /usr/local/lib/node_modules/openclaw/dist /openclaw/dist
 
@@ -27,12 +26,12 @@ RUN npm install -g pnpm@10 && pnpm install --prod
 COPY src ./src
 COPY --chmod=755 entrypoint.sh ./entrypoint.sh
 
-RUN useradd -m -s /bin/bash openclaw \
-  && chown -R openclaw:openclaw /app \
-  && mkdir -p /data && chown openclaw:openclaw /data \
-  && mkdir -p /home/linuxbrew/.linuxbrew && chown -R openclaw:openclaw /home/linuxbrew
+RUN groupadd -g 1001 openclaw \
+  && useradd -m -u 1001 -g 1001 -s /bin/bash openclaw \
+  && mkdir -p /data/.openclaw /home/linuxbrew/.linuxbrew \
+  && chown -R 1001:1001 /app /data /home/linuxbrew
 
-USER openclaw
+USER 1001:1001
 RUN NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
 ENV PATH="/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:${PATH}"
@@ -47,5 +46,4 @@ EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s \
   CMD curl -f http://localhost:8080/setup/healthz || exit 1
 
-USER root
 ENTRYPOINT ["./entrypoint.sh"]
